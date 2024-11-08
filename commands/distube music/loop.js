@@ -13,9 +13,9 @@ module.exports = {
                 .setRequired(false)),
 
     async execute(interaction) {
-        if (interaction.isCommand && interaction.isCommand()) {
-            await interaction.deferReply();
-        }
+        if (!interaction.isCommand()) return;
+
+        await interaction.deferReply(); // Hoãn trả lời để tránh lỗi "InteractionAlreadyReplied"
 
         try {
             await executeLoop(interaction);
@@ -42,25 +42,16 @@ async function executeLoop(source) {
 
     if (!voiceChannel) {
         const errorMessage = lang.loopNoVoiceChannel;
-        if (source.isCommand && source.isCommand()) {
-            return source.editReply(errorMessage);
-        } else {
-            return source.channel.send(errorMessage);
-        }
+        return sendReply(source, errorMessage);
     }
 
     const permissions = voiceChannel.permissionsFor(source.client.user);
     if (!permissions.has('CONNECT') || !permissions.has('SPEAK')) {
         const permissionMessage = lang.loopNoPermissions;
-        if (source.isCommand && source.isCommand()) {
-            return source.editReply(permissionMessage);
-        } else {
-            return source.channel.send(permissionMessage);
-        }
+        return sendReply(source, permissionMessage);
     }
 
     const loopMode = source.options?.getString('mode') || (source.content.split(/\s+/)[1] || '').toLowerCase();
-
     const guildId = source.guildId;
     const queue = source.client.distube.getQueue(guildId);
 
@@ -75,11 +66,7 @@ async function executeLoop(source) {
             .setFooter({ text: lang.loopFooterText, iconURL: musicIcons.footerIcon })
             .setDescription(lang.loopNoQueue);
 
-        if (source.isCommand && source.isCommand()) {
-            return source.editReply({ embeds: [noQueueEmbed] });
-        } else {
-            return source.channel.send({ embeds: [noQueueEmbed] });
-        }
+        return sendReply(source, { embeds: [noQueueEmbed] });
     }
 
     const toggleLoopEmbed = new EmbedBuilder()
@@ -98,21 +85,17 @@ async function executeLoop(source) {
         await source.client.distube.setRepeatMode(guildId, 1);
         toggleLoopEmbed.setDescription(lang.loopSongEnabled);
     } else {
-        if (queue.repeatMode === 1) {
-            await source.client.distube.setRepeatMode(guildId, 0);
-            toggleLoopEmbed.setDescription(lang.loopDisabled);
-        } else if (queue.repeatMode === 0) {
-            await source.client.distube.setRepeatMode(guildId, 1);
-            toggleLoopEmbed.setDescription(lang.loopSongEnabled);
-        } else {
-            await source.client.distube.setRepeatMode(guildId, 0);
-            toggleLoopEmbed.setDescription(lang.loopDisabled);
-        }
+        const repeatMode = queue.repeatMode === 1 ? 0 : 1;
+        await source.client.distube.setRepeatMode(guildId, repeatMode);
+        toggleLoopEmbed.setDescription(repeatMode === 1 ? lang.loopSongEnabled : lang.loopDisabled);
     }
 
-    if (source.isCommand && source.isCommand()) {
-        await source.editReply({ embeds: [toggleLoopEmbed] });
-    } else {
-        await source.channel.send({ embeds: [toggleLoopEmbed] });
-    }
+    return sendReply(source, { embeds: [toggleLoopEmbed] });
 }
+
+// Hỗ trợ trả lời cho cả interaction và message
+function sendReply(source, message) {
+    if (source.isCommand()) {
+        return source.editReply(message);  // Dùng editReply cho interaction
+    } else {
+        return source.channel.send(message);  // Dùng send cho messag
