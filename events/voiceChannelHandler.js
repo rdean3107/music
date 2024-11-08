@@ -1,3 +1,6 @@
+//const handleInteraction = async (interaction) => {
+ // if (!interaction.isStringSelectMenu()) return;
+
 const { Client, ChannelType, PermissionsBitField, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
 const { voiceChannelCollection, centralizedControlCollection } = require('../mongodb');
 
