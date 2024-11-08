@@ -1,3 +1,42 @@
+const { SlashCommandBuilder, EmbedBuilder } = require('@discordjs/builders');
+const { DisTubeError } = require('distube');
+const musicIcons = require('../../UI/icons/musicicons');
+const lang = require('../../events/loadLanguage');
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('loop')
+        .setDescription(lang.loopDescription)
+        .addStringOption(option =>
+            option.setName('mode')
+                .setDescription(lang.loopModeDescription)
+                .setRequired(false)),
+
+    async execute(interaction) {
+        if (interaction.isCommand && interaction.isCommand()) {
+            await interaction.deferReply();
+        }
+
+        try {
+            await executeLoop(interaction);
+        } catch (error) {
+            console.error(error);
+            const errorMessage = lang.loopError;
+            await interaction.editReply(errorMessage);
+        }
+    },
+
+    async executePrefix(message, args) {
+        try {
+            await executeLoop(message);
+        } catch (error) {
+            console.error(error);
+            const errorMessage = lang.loopError;
+            await message.channel.send(errorMessage);
+        }
+    },
+};
+
 async function executeLoop(source) {
     const voiceChannel = source.member.voice.channel;
 
@@ -28,8 +67,8 @@ async function executeLoop(source) {
     if (!queue) {
         const noQueueEmbed = new EmbedBuilder()
             .setColor(0x0000FF)
-            .setAuthor({
-                name: lang.loopNoQueueTitle,
+            .setAuthor({ 
+                name: lang.loopNoQueueTitle, 
                 iconURL: musicIcons.wrongIcon,
                 url: "https://discord.gg/xQF9f9yUEM"
             })
@@ -46,8 +85,8 @@ async function executeLoop(source) {
     const toggleLoopEmbed = new EmbedBuilder()
         .setColor(0x0000FF)
         .setFooter({ text: lang.loopFooterText, iconURL: musicIcons.footerIcon })
-        .setAuthor({
-            name: lang.loopTitle,
+        .setAuthor({ 
+            name: lang.loopTitle, 
             iconURL: musicIcons.loopIcon,
             url: "https://discord.gg/xQF9f9yUEM"
         });
@@ -77,4 +116,3 @@ async function executeLoop(source) {
         await source.channel.send({ embeds: [toggleLoopEmbed] });
     }
 }
-
