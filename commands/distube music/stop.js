@@ -22,9 +22,10 @@ module.exports = {
         }
 
         try {
-            await interaction.reply(lang.stopInProgress);
+            // Hoãn trả lời để tránh lỗi "InteractionAlreadyReplied"
+            await interaction.deferReply();
 
-            // Stop the queue and leave voice channel
+            // Dừng hàng đợi và rời khỏi kênh voice
             await interaction.client.distube.stop(voiceChannel);
 
             const stoppedEmbed = new EmbedBuilder()
@@ -37,10 +38,12 @@ module.exports = {
                 .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })   
                 .setDescription(lang.stopSuccessMessage);
 
-            await interaction.reply({ embeds: [stoppedEmbed] });
+            await interaction.editReply({ embeds: [stoppedEmbed] });
+
         } catch (error) {
             console.error(error);
 
+            // Xử lý các lỗi từ DisTubeError
             if (error instanceof DisTubeError && error.code === 'NO_QUEUE') {
                 const noQueueEmbed = new EmbedBuilder()
                     .setColor(0x0000FF)
@@ -52,7 +55,8 @@ module.exports = {
                     .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })   
                     .setDescription(lang.stopNoQueueMessage);
 
-                await interaction.reply({ embeds: [noQueueEmbed] });
+                return interaction.editReply({ embeds: [noQueueEmbed] });
+
             } else if (error instanceof DisTubeError && error.code === 'STOPPED') {
                 const alreadyStoppedEmbed = new EmbedBuilder()
                     .setColor(0x0000FF)
@@ -64,10 +68,10 @@ module.exports = {
                     .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })   
                     .setDescription(lang.stopAlreadyStoppedMessage);
 
-                await interaction.reply({ embeds: [alreadyStoppedEmbed] });
+                return interaction.editReply({ embeds: [alreadyStoppedEmbed] });
             } else {
                 const errorMessage = lang.stopErrorMessage;
-                await interaction.reply(errorMessage);
+                return interaction.editReply(errorMessage);
             }
         }
     },
