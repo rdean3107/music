@@ -11,7 +11,7 @@ module.exports = {
         const voiceChannel = interaction.member.voice.channel;
 
         if (!voiceChannel) {
-            return interaction.reply(lang.queueNoVoiceChannel);
+            return sendReply(interaction, lang.queueNoVoiceChannel);
         }
 
         const queue = interaction.client.distube.getQueue(interaction.guildId);
@@ -27,11 +27,7 @@ module.exports = {
                 .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })   
                 .setDescription(lang.queueNoSongsMessage);
 
-            if (interaction.isCommand && interaction.isCommand()) {
-                return interaction.reply({ embeds: [noSongsEmbed] });
-            } else {
-                return interaction.channel.send({ embeds: [noSongsEmbed] });
-            }
+            return sendReply(interaction, { embeds: [noSongsEmbed] });
         }
 
         const queueEmbed = new EmbedBuilder()
@@ -45,16 +41,24 @@ module.exports = {
             .setDescription(`${lang.queueSongs} ${queue.songs.length}`)
             .setTimestamp();
 
-        for (let i = 1; i < queue.songs.length; i++) {
-            queueEmbed.addFields(
-                { name: `${i}. ${queue.songs[i].name}`, value: `${lang.queueDuration} ${queue.songs[i].formattedDuration}` }
-            );
-        }
+        // Duyệt qua danh sách bài hát trong hàng đợi và thêm vào Embed
+        queue.songs.forEach((song, index) => {
+            if (index > 0) { // Bỏ qua bài hát đang phát
+                queueEmbed.addFields(
+                    { name: `${index}. ${song.name}`, value: `${lang.queueDuration} ${song.formattedDuration}` }
+                );
+            }
+        });
 
-        if (interaction.isCommand && interaction.isCommand()) {
-            await interaction.reply({ embeds: [queueEmbed] });
-        } else {
-            await interaction.channel.send({ embeds: [queueEmbed] });
-        }
+        return sendReply(interaction, { embeds: [queueEmbed] });
     },
 };
+
+// Hỗ trợ trả lời cho cả interaction và message
+function sendReply(source, message) {
+    if (source.isCommand()) {
+        return source.reply(message);  // Dùng reply cho interaction
+    } else {
+        return source.channel.send(message);  // Dùng send cho message thường
+    }
+}
