@@ -51,7 +51,7 @@ async function executePlay(interaction, input) {
 
         // Kiểm tra nếu input là playlist
         if (isPlaylist(input)) {
-            // Xử lý playlist, có thể thêm logic riêng nếu cần
+            // Xử lý playlist
             await interaction.client.distube.play(voiceChannel, input, {
                 textChannel: interaction.channel,
                 member: interaction.member,
@@ -65,7 +65,8 @@ async function executePlay(interaction, input) {
         }
     } catch (error) {
         console.error(error);
-        await interaction.editReply(lang.playError);
+        // Chi tiết lỗi có thể giúp người dùng hiểu rõ hơn
+        await interaction.editReply(`${lang.playError} - ${error.message}`);
     }
 }
 
