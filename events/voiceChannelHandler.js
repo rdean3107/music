@@ -206,7 +206,7 @@ const handleVoiceStateUpdate = async (client, oldState, newState) => {
 };
 
 const handleInteraction = async (interaction) => {
-  if (!interaction.isSelectMenu()) return;
+  if (!interaction.isStringSelectMenu()) return;
 
   try {
       const userId = interaction.user.id;
