@@ -42,13 +42,12 @@ module.exports = {
             .setTimestamp();
 
         // Duyệt qua danh sách bài hát trong hàng đợi và thêm vào Embed
-        queue.songs.forEach((song, index) => {
-            if (index > 0) { // Bỏ qua bài hát đang phát
-                queueEmbed.addFields(
-                    { name: `${index}. ${song.name}`, value: `${lang.queueDuration} ${song.formattedDuration}` }
-                );
-            }
-        });
+        for (let i = 1; i < queue.songs.length; i++) {  // Bỏ qua bài hát đang phát
+            const song = queue.songs[i];
+            queueEmbed.addFields(
+                { name: `${i}. ${song.name}`, value: `${lang.queueDuration} ${song.formattedDuration}` }
+            );
+        }
 
         return sendReply(interaction, { embeds: [queueEmbed] });
     },
@@ -58,7 +57,6 @@ module.exports = {
 function sendReply(source, message) {
     if (source.isCommand()) {
         return source.reply(message);  // Dùng reply cho interaction
-    } else {
-        return source.channel.send(message);  // Dùng send cho message thường
     }
+    return source.channel.send(message);  // Dùng send cho message thường
 }
