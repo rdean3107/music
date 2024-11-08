@@ -48,17 +48,11 @@ async function executePlay(interaction, input) {
     try {
         await interaction.reply(`${lang.playInProgress} ${input}`);
 
-        if (isPlaylist(input)) {
-            await interaction.client.distube.playlist(voiceChannel, input, {
-                textChannel: interaction.channel,
-                member: interaction.member,
-            });
-        } else {
-            await interaction.client.distube.play(voiceChannel, input, {
-                textChannel: interaction.channel,
-                member: interaction.member,
-            });
-        }
+        // Dùng phương thức `play` cho cả bài hát và playlist.
+        await interaction.client.distube.play(voiceChannel, input, {
+            textChannel: interaction.channel,
+            member: interaction.member,
+        });
     } catch (error) {
         console.error(error);
         await interaction.editReply(lang.playError);
