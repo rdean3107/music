@@ -84,4 +84,27 @@ module.exports = {
                     .setAuthor({ 
                         name: lang.skipNoUpNextTitle, 
                         iconURL: musicIcons.wrongIcon,
-                        u
+                        url: "https://discord.gg/xQF9f9yUEM"
+                    })
+                    .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })  
+                    .setDescription(lang.skipNoUpNextMessage);
+
+                return interaction.editReply({ embeds: [noUpNextEmbed] });
+
+            } else {
+                // Xử lý các lỗi khác
+                const errorEmbed = new EmbedBuilder()
+                    .setColor(0xFF0000)
+                    .setAuthor({ 
+                        name: lang.skipErrorTitle, 
+                        iconURL: musicIcons.errorIcon,
+                        url: "https://discord.gg/xQF9f9yUEM"
+                    })
+                    .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })  
+                    .setDescription(lang.skipErrorMessage);
+
+                return interaction.editReply({ embeds: [errorEmbed] });
+            }
+        }
+    },
+};
