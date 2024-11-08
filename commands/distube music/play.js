@@ -10,20 +10,9 @@ module.exports = {
             option.setName('input')
                 .setDescription(lang.playInputDescription)
                 .setRequired(true)),
-    async execute(interaction) {
-        let input;
 
-        if (interaction.isCommand && interaction.isCommand()) {
-            input = interaction.options.getString('input');
-        } else {
-            const guildId = interaction.guildId;
-            const prefix = config.prefixes.server_specific[guildId] || config.prefixes.default;
-            const args = interaction.content.slice(prefix.length).trim().split(/ +/);
-            const command = args.shift().toLowerCase();
-            if (command === 'play') {
-                input = args.join(' ');
-            }
-        }
+    async execute(interaction) {
+        const input = interaction.options.getString('input') || extractInputFromMessage(interaction);
 
         if (!input) {
             return interaction.reply(lang.playNoInput);
@@ -32,6 +21,18 @@ module.exports = {
         return executePlay(interaction, input);
     },
 };
+
+// Hàm hỗ trợ trích xuất input từ message
+function extractInputFromMessage(interaction) {
+    const guildId = interaction.guildId;
+    const prefix = config.prefixes.server_specific[guildId] || config.prefixes.default;
+    const args = interaction.content.slice(prefix.length).trim().split(/ +/);
+    const command = args.shift().toLowerCase();
+    if (command === 'play') {
+        return args.join(' ');
+    }
+    return null;
+}
 
 async function executePlay(interaction, input) {
     const voiceChannel = interaction.member.voice.channel;
@@ -48,11 +49,20 @@ async function executePlay(interaction, input) {
     try {
         await interaction.reply(`${lang.playInProgress} ${input}`);
 
-        // Dùng phương thức `play` cho cả bài hát và playlist.
-        await interaction.client.distube.play(voiceChannel, input, {
-            textChannel: interaction.channel,
-            member: interaction.member,
-        });
+        // Kiểm tra nếu input là playlist
+        if (isPlaylist(input)) {
+            // Xử lý playlist, có thể thêm logic riêng nếu cần
+            await interaction.client.distube.play(voiceChannel, input, {
+                textChannel: interaction.channel,
+                member: interaction.member,
+            });
+        } else {
+            // Xử lý bài hát thông thường
+            await interaction.client.distube.play(voiceChannel, input, {
+                textChannel: interaction.channel,
+                member: interaction.member,
+            });
+        }
     } catch (error) {
         console.error(error);
         await interaction.editReply(lang.playError);
