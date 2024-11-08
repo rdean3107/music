@@ -11,7 +11,6 @@ module.exports = {
     async execute(interaction) {
         const voiceChannel = interaction.member.voice.channel;
 
-        // Kiểm tra xem người dùng có ở kênh voice không
         if (!voiceChannel) {
             return interaction.reply(lang.skipNoVoiceChannel);
         }
@@ -22,10 +21,12 @@ module.exports = {
         }
 
         try {
-            // Hoãn trả lời tương tác để tránh lỗi InteractionAlreadyReplied
-            await interaction.deferReply();
+            await interaction.reply(lang.skipInProgress);
 
-            // Lấy queue hiện tại
+            // Skip the song
+            await interaction.client.distube.skip(voiceChannel);
+
+            // Check if there are songs left in the queue
             const queue = interaction.client.distube.getQueue(interaction.guildId);
             if (!queue || !queue.songs.length) {
                 const noSongsEmbed = new EmbedBuilder()
@@ -38,13 +39,10 @@ module.exports = {
                     .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })   
                     .setDescription(lang.skipNoSongsMessage);
 
-                return interaction.editReply({ embeds: [noSongsEmbed] });
+                return interaction.reply({ embeds: [noSongsEmbed] });
             }
 
-            // Skip the song
-            await interaction.client.distube.skip(voiceChannel);
-
-            // Kiểm tra nếu có bài hát tiếp theo trong hàng đợi
+            // Get the next song
             const nextSong = queue.songs[0];
             const nextSongEmbed = new EmbedBuilder()
                 .setColor(0x0000FF)
@@ -59,12 +57,10 @@ module.exports = {
                     { name: lang.skipDurationField, value: nextSong.formattedDuration }
                 );
 
-            await interaction.editReply({ embeds: [nextSongEmbed] });
-
+            await interaction.reply({ embeds: [nextSongEmbed] });
         } catch (error) {
             console.error(error);
 
-            // Xử lý lỗi DisTubeError
             if (error instanceof DisTubeError && error.code === 'NO_QUEUE') {
                 const noQueueEmbed = new EmbedBuilder()
                     .setColor(0x0000FF)
@@ -76,8 +72,7 @@ module.exports = {
                     .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })  
                     .setDescription(lang.skipNoQueueMessage);
 
-                return interaction.editReply({ embeds: [noQueueEmbed] });
-
+                await interaction.reply({ embeds: [noQueueEmbed] });
             } else if (error instanceof DisTubeError && error.code === 'NO_UP_NEXT') {
                 const noUpNextEmbed = new EmbedBuilder()
                     .setColor(0x0000FF)
@@ -89,21 +84,10 @@ module.exports = {
                     .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })  
                     .setDescription(lang.skipNoUpNextMessage);
 
-                return interaction.editReply({ embeds: [noUpNextEmbed] });
-
+                await interaction.reply({ embeds: [noUpNextEmbed] });
             } else {
-                // Xử lý các lỗi khác
-                const errorEmbed = new EmbedBuilder()
-                    .setColor(0xFF0000)
-                    .setAuthor({ 
-                        name: lang.skipErrorTitle, 
-                        iconURL: musicIcons.errorIcon,
-                        url: "https://discord.gg/xQF9f9yUEM"
-                    })
-                    .setFooter({ text: 'Distube Player', iconURL: musicIcons.footerIcon })  
-                    .setDescription(lang.skipErrorMessage);
-
-                return interaction.editReply({ embeds: [errorEmbed] });
+                const errorMessage = lang.skipErrorMessage;
+                await interaction.reply(errorMessage);
             }
         }
     },
