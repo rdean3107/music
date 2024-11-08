@@ -1,4 +1,3 @@
-// Đảm bảo rằng hàm này được đóng đúng
 async function executeLoop(source) {
     const voiceChannel = source.member.voice.channel;
 
@@ -29,8 +28,8 @@ async function executeLoop(source) {
     if (!queue) {
         const noQueueEmbed = new EmbedBuilder()
             .setColor(0x0000FF)
-            .setAuthor({ 
-                name: lang.loopNoQueueTitle, 
+            .setAuthor({
+                name: lang.loopNoQueueTitle,
                 iconURL: musicIcons.wrongIcon,
                 url: "https://discord.gg/xQF9f9yUEM"
             })
@@ -47,8 +46,8 @@ async function executeLoop(source) {
     const toggleLoopEmbed = new EmbedBuilder()
         .setColor(0x0000FF)
         .setFooter({ text: lang.loopFooterText, iconURL: musicIcons.footerIcon })
-        .setAuthor({ 
-            name: lang.loopTitle, 
+        .setAuthor({
+            name: lang.loopTitle,
             iconURL: musicIcons.loopIcon,
             url: "https://discord.gg/xQF9f9yUEM"
         });
@@ -79,4 +78,3 @@ async function executeLoop(source) {
     }
 }
 
-// Đảm bảo đóng tất cả hàm và khối mã đúng cách
